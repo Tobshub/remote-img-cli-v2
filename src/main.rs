@@ -18,6 +18,8 @@ fn main() {
             }
             "--help" | "-h" | _ => display_help_message(),
         }
+    } else {
+        display_help_message();
     }
 }
 
