@@ -11,7 +11,7 @@ fn main() {
                 for path in &args[2..] {
                     let abs_path = fs::canonicalize(PathBuf::from(path));
                     match abs_path {
-                        Ok(path) => println!("Uploading file at {:?}", path),
+                        Ok(path) => upload_file_at_path(&path),
                         Err(_) => println!("Could not find file: {}", path),
                     }
                 }
@@ -19,6 +19,10 @@ fn main() {
             "--help" | "-h" | _ => display_help_message(),
         }
     }
+}
+
+fn upload_file_at_path(path: &PathBuf) {
+    println!("Uploading file at {:?}", path)
 }
 
 fn display_help_message() {
