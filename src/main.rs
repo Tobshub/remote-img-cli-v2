@@ -13,39 +13,43 @@ async fn main() {
         let command = command.unwrap();
         let client = reqwest::Client::new();
         match command {
-            "--upload" | "-u" => {
-                for path in &args[2..] {
-                    let abs_path = fs::canonicalize(PathBuf::from(path));
-                    match abs_path {
-                        Ok(_path) => {
-                            // upload_file_at_path(&client, &path)
-                            // .await
-                            // .unwrap_or_else(|e| println!("Failed to upload file: {}", e));
+            "--help" | "-h" => display_help_message(),
+            _ => match command {
+                // TODO: check for "env" file else create it
+                "--upload" | "-u" => {
+                    for path in &args[2..] {
+                        let abs_path = fs::canonicalize(PathBuf::from(path));
+                        match abs_path {
+                            Ok(_path) => {
+                                // upload_file_at_path(&client, &path)
+                                // .await
+                                // .unwrap_or_else(|e| println!("Failed to upload file: {}", e));
+                            }
+                            Err(_) => println!("Could not find file: {}", path),
                         }
-                        Err(_) => println!("Could not find file: {}", path),
                     }
                 }
-            }
-            "--auth" => {
-                let user = User {
-                    email: args[2].clone(),
-                    password: args[3].clone(),
-                };
-                get_auth_token(&client, &user).await.unwrap();
-            }
-            "--server" | "-s" => {
-                let server_url = args.get(2);
-                match server_url {
-                    None => {
-                        let server_url = env::var("TOBSMG_SERVER_URL").ok();
-                        println!("Server url is set as {:?}", server_url);
-                    }
-                    Some(server_url) => {
-                        set_server_url(server_url).unwrap();
+                "--auth" => {
+                    let user = User {
+                        email: args[2].clone(),
+                        password: args[3].clone(),
+                    };
+                    get_auth_token(&client, &user).await.unwrap();
+                }
+                "--server" | "-s" => {
+                    let server_url = args.get(2);
+                    match server_url {
+                        None => {
+                            let server_url = env::var("TOBSMG_SERVER_URL").ok();
+                            println!("Server url is set as {:?}", server_url);
+                        }
+                        Some(server_url) => {
+                            set_server_url(server_url).unwrap();
+                        }
                     }
                 }
-            }
-            "--help" | "-h" | _ => display_help_message(),
+                _ => display_help_message(),
+            },
         }
     } else {
         display_help_message();
