@@ -1,3 +1,4 @@
+use dotenv;
 use reqwest::{self, StatusCode};
 use serde_json;
 use std::path::PathBuf;
@@ -5,6 +6,7 @@ use std::{env, fs, io};
 
 #[tokio::main]
 async fn main() {
+    dotenv::dotenv().ok();
     let args: Vec<String> = env::args().collect();
     let command: Option<&str> = args.get(1).map(|x| &**x);
     if command.is_some() {
@@ -31,11 +33,29 @@ async fn main() {
                 };
                 get_auth_token(&client, &user).await.unwrap();
             }
+            "--server" | "-s" => {
+                let server_url = args.get(2);
+                match server_url {
+                    None => {
+                        let server_url = env::var("TOBSMG_SERVER_URL").ok();
+                        println!("Server url is set as {:?}", server_url);
+                    }
+                    Some(server_url) => {
+                        set_server_url(server_url).unwrap();
+                    }
+                }
+            }
             "--help" | "-h" | _ => display_help_message(),
         }
     } else {
         display_help_message();
     }
+}
+
+fn set_server_url(server_url: &String) -> io::Result<()> {
+    let data = format!("TOBSMG_SERVER_URL=\"{}\"\n", server_url);
+    fs::write(".env", data.as_bytes())?;
+    return Ok(());
 }
 
 #[derive(Debug)]
@@ -46,9 +66,10 @@ struct User {
 
 async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), reqwest::Error> {
     println!("Authenticating with {:?}", user);
-    let url = String::from("http://localhost:4000/api/auth.login");
+    let server_url = env::var("TOBSMG_SERVER_URL").unwrap();
+    let auth_url = format!("{}/api/auth.login", &server_url);
     let res = client
-        .post(url)
+        .post(auth_url)
         .json(&serde_json::json!({
             "email": user.email,
             "password": user.password
@@ -59,8 +80,8 @@ async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), req
     match res.status() {
         StatusCode::OK => {
             let json: serde_json::Value = res.json().await?;
-            let mut token = json["result"]["data"]["value"].to_string();
-            save_token(&mut token).unwrap();
+            let token = json["result"]["data"]["value"].to_string();
+            save_token(&token).unwrap();
         }
         _ => println!("Request Failed with status code {:?}", res.status()),
     }
@@ -68,8 +89,12 @@ async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), req
     return Ok(());
 }
 
-fn save_token(token: &mut String) -> io::Result<()> {
-    let data = format!("TOBSMG_TOKEN={}", token);
+fn save_token(token: &String) -> io::Result<()> {
+    let server_url = &env::var("TOBSMG_SERVER_URL").unwrap();
+    let data = format!(
+        "TOBSMG_SERVER_URL=\"{}\"\nTOBSMG_TOKEN={}",
+        server_url, token
+    );
     fs::write(".env", data.as_bytes())?;
     return Ok(());
 }
