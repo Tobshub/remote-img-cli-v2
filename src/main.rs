@@ -70,7 +70,7 @@ struct User {
 
 async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), reqwest::Error> {
     println!("Authenticating with {:?}", user);
-    let server_url = env::var("TOBSMG_SERVER_URL").unwrap();
+    let server_url = env::var("TOBSMG_SERVER_URL").expect("Server url has not been set");
     let auth_url = format!("{}/api/auth.login", &server_url);
     let res = client
         .post(auth_url)
