@@ -17,7 +17,6 @@ async fn main() {
             _ => {
                 load_tobsmg_env_vars();
                 match command {
-                    // TODO: check for "env" file else create it
                     "--upload" | "-u" | "--temp-upload" | "-t" => {
                         if args.len() < 3 {
                             display_help_message()
