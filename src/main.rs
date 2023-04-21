@@ -112,7 +112,7 @@ Usage:
 
     --auth <email> <password>   Authenticate user and get auth token from server                    
     --server <server-url>       Configure the remote server url
-    -u, --upload                Upload files to the server
+    -u, --upload                Upload files to the server. E.g. -u ./path/to/img1 ../path/to/img2 ...
     -t, --temp-upload           Temporarily Upload files to the server 
     "
     );
