@@ -9,7 +9,7 @@ pub struct User {
 }
 
 pub async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), reqwest::Error> {
-    println!("Authenticating with {:?}", user);
+    println!("Authenticating...");
     let server_url = env::var("TOBSMG_SERVER_URL").expect("Server url has not been set");
     let auth_url = format!("{}/api/auth.login", &server_url);
     let res = client
@@ -26,6 +26,7 @@ pub async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(),
             let json: serde_json::Value = res.json().await?;
             let token = json["result"]["data"]["value"].to_string();
             save_token(&token).unwrap();
+            println!("Auth token has been saved");
         }
         _ => println!("Request Failed with status code {:?}", res.status()),
     }
