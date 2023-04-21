@@ -1,8 +1,8 @@
 use dotenv;
-use reqwest::{self, StatusCode};
-use serde_json;
+use reqwest;
 use std::path::PathBuf;
 use std::{env, fs, io};
+mod auth;
 mod upload;
 
 #[tokio::main]
@@ -42,11 +42,11 @@ async fn main() {
                     }
                 }
                 "--auth" => {
-                    let user = User {
+                    let user = auth::User {
                         email: args[2].clone(),
                         password: args[3].clone(),
                     };
-                    get_auth_token(&client, &user).await.unwrap();
+                    auth::get_auth_token(&client, &user).await.unwrap();
                 }
                 "--server" | "-s" => {
                     let server_url = args.get(2);
@@ -70,47 +70,6 @@ async fn main() {
 
 fn set_server_url(server_url: &String) -> io::Result<()> {
     let data = format!("TOBSMG_SERVER_URL=\"{}\"\n", server_url);
-    fs::write(".env", data.as_bytes())?;
-    return Ok(());
-}
-
-#[derive(Debug)]
-struct User {
-    email: String,
-    password: String,
-}
-
-async fn get_auth_token(client: &reqwest::Client, user: &User) -> Result<(), reqwest::Error> {
-    println!("Authenticating with {:?}", user);
-    let server_url = env::var("TOBSMG_SERVER_URL").expect("Server url has not been set");
-    let auth_url = format!("{}/api/auth.login", &server_url);
-    let res = client
-        .post(auth_url)
-        .json(&serde_json::json!({
-            "email": user.email,
-            "password": user.password
-        }))
-        .send()
-        .await?;
-
-    match res.status() {
-        StatusCode::OK => {
-            let json: serde_json::Value = res.json().await?;
-            let token = json["result"]["data"]["value"].to_string();
-            save_token(&token).unwrap();
-        }
-        _ => println!("Request Failed with status code {:?}", res.status()),
-    }
-
-    return Ok(());
-}
-
-fn save_token(token: &String) -> io::Result<()> {
-    let server_url = &env::var("TOBSMG_SERVER_URL").unwrap();
-    let data = format!(
-        "TOBSMG_SERVER_URL=\"{}\"\nTOBSMG_TOKEN={}",
-        server_url, token
-    );
     fs::write(".env", data.as_bytes())?;
     return Ok(());
 }
