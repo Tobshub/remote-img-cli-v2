@@ -18,7 +18,7 @@ async fn main() {
                 load_tobsmg_env_vars();
                 match command {
                     // TODO: check for "env" file else create it
-                    "--upload" | "-u" | "--temp-upload" => {
+                    "--upload" | "-u" | "--temp-upload" | "-t" => {
                         if args.len() < 3 {
                             display_help_message()
                         }
@@ -29,7 +29,7 @@ async fn main() {
                                     upload::upload_image_at_path(
                                         &client,
                                         &path,
-                                        if command == "--temp-upload" {
+                                        if (command == "--temp-upload") || (command == "-t") {
                                             true
                                         } else {
                                             false
