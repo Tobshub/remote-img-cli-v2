@@ -42,7 +42,7 @@ async fn main() {
                             }
                         }
                     }
-                    "--auth" => {
+                    "--auth" | "--login" => {
                         let user = auth::User {
                             email: args[2].clone(),
                             password: args[3].clone(),
@@ -100,6 +100,7 @@ Tobsmg CLI - v2.0.0
 Usage:
 
     --auth <email> <password>   Authenticate user and get auth token from server                    
+    --login <email> <password>  Authenticate user and get auth token from server                    
     --server <server-url>       Configure the remote server url
     -u, --upload                Upload files to the server. E.g. -u ./path/to/img1 ../path/to/img2 ...
     -t, --temp-upload           Temporarily Upload files to the server 
