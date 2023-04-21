@@ -17,7 +17,6 @@ pub async fn upload_image_at_path(client: &reqwest::Client, path: &PathBuf, is_t
                 Some(file_type) => {
                     let file_type = file_type.to_string();
                     let file_name = path.file_name().unwrap().to_str().unwrap();
-                    println!("file name: {}", file_name);
                     let server_url =
                         env::var("TOBSMG_SERVER_URL").expect("Server url has not been set");
                     let upload_url = format!(
@@ -40,10 +39,16 @@ pub async fn upload_image_at_path(client: &reqwest::Client, path: &PathBuf, is_t
                     if res.is_ok() {
                         let res = res.unwrap();
                         match res.status() {
-                            _ => {
+                            StatusCode::OK => {
                                 let json: serde_json::Value = res.json().await.unwrap();
-                                println!("{:#?}", json);
-                            } // _ => println!("Request Failed with status code {:?}", res),
+                                let image_url = &json["result"]["data"]["value"].to_string();
+                                // TODO: remove '"' from image_url
+                                println!(
+                                    "Success: Image is available at {}/img/{}",
+                                    server_url, image_url
+                                );
+                            }
+                            _ => println!("Request Failed with status code {:?}", res.status()),
                         };
                     };
                 }
