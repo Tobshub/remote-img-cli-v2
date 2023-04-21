@@ -39,6 +39,7 @@ fn save_token(token: &String) -> io::Result<()> {
         "TOBSMG_SERVER_URL=\"{}\"\nTOBSMG_TOKEN={}",
         server_url, token
     );
-    fs::write(".env", data.as_bytes())?;
+    let env_file_path = env::var("TOBSMG_ENV_PATH").expect("Tobsmg ENV file path not set");
+    fs::write(env_file_path, data.as_bytes())?;
     return Ok(());
 }
