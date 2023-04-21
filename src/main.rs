@@ -1,6 +1,6 @@
 use dotenv;
 use reqwest;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{env, fs, io};
 mod auth;
 mod upload;
@@ -72,21 +72,24 @@ async fn main() {
 
 fn set_server_url(server_url: &String) -> io::Result<()> {
     let data = format!("TOBSMG_SERVER_URL=\"{}\"\n", server_url);
-    fs::write(".env", data.as_bytes())?;
+    let env_file_path = env::var("TOBSMG_ENV_PATH").expect("Tobsmg ENV file path not set");
+    fs::write(env_file_path, data.as_bytes())?;
     return Ok(());
 }
 
 fn load_tobsmg_env_vars() {
-    let env_file_path = if env::var("IS_DEV").is_ok() {
-        String::from(".env")
+    let home_dir = env::var("HOME").expect("no HOME set in env");
+    let env_parent_dir = if env::var("IS_DEV").is_ok() {
+        String::from(".")
     } else {
-        format!(
-            "{}/.tobsmg/.env",
-            env::var("HOME").expect("no HOME set in env")
-        )
+        format!("{}/.tobsmg", home_dir)
     };
-    println!("env path is {}", env_file_path);
-    dotenv::from_path(env_file_path).ok();
+    if !Path::new(&env_parent_dir).exists() {
+        fs::create_dir(format!("{}/.tobsmg", home_dir)).expect("Could not create env storage dir");
+    };
+    let env_file_path = format!("{}/.env", env_parent_dir);
+    env::set_var("TOBSMG_ENV_PATH", &env_file_path);
+    dotenv::from_path(&env_file_path).ok();
 }
 
 fn display_help_message() {
