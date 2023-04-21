@@ -3,6 +3,7 @@ use reqwest::{self, StatusCode};
 use serde_json;
 use std::path::PathBuf;
 use std::{env, fs, io};
+mod upload;
 
 #[tokio::main]
 async fn main() {
@@ -16,13 +17,24 @@ async fn main() {
             "--help" | "-h" => display_help_message(),
             _ => match command {
                 // TODO: check for "env" file else create it
-                "--upload" | "-u" => {
+                "--upload" | "-u" | "--temp-upload" => {
+                    if args.len() < 3 {
+                        display_help_message()
+                    }
                     for path in &args[2..] {
                         let abs_path = fs::canonicalize(PathBuf::from(path));
                         match abs_path {
-                            Ok(_path) => {
-                                // upload_file_at_path(&client, &path)
-                                // .await
+                            Ok(path) => {
+                                upload::upload_image_at_path(
+                                    &client,
+                                    &path,
+                                    if command == "--temp-upload" {
+                                        true
+                                    } else {
+                                        false
+                                    },
+                                )
+                                .await;
                                 // .unwrap_or_else(|e| println!("Failed to upload file: {}", e));
                             }
                             Err(_) => println!("Could not find file: {}", path),
